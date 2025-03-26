@@ -5,12 +5,12 @@ Shader "Custom/E1.7"
         _Color ("_Color", Color) = (1,1,1,1)
         _MainTex ("_MainTex", 2D) = "white" {}
         _NormalMap ("_NormalMap", 2D) = "bump" {}
-        _NormalIntensity ("_NormalIntensity", Range(0,1)) = 1
+        _NormalIntensity ("_NormalIntensity", float) = 1
         _MetallicSmoothness ("_MetallicSmoothness", 2D) = "white" {}
         _Metallic ("_Metallic", Range(0,1)) = 0
         _Smoothness ("_Smoothness", Range(0,1)) = 0.5
         _AmbientOcclusionMap ("_AmbientOcclusionMap", 2D) = "white" {}
-        [HDR] _Emission ("_Emission", Color) = (1,1,1,1)
+        [HDR] _Emission ("_Emission", Color) = (0,0,0,0)
         _EmissionMap ("_EmissionMap", 2D) = "white" {}
     }
     SubShader
@@ -32,9 +32,15 @@ Shader "Custom/E1.7"
             float2 uv_MainTex;
         };
 
-        half _Glossiness;
+        half _NormalIntensity;
+        half _Smoothness;
         half _Metallic;
         fixed4 _Color;
+        float4 _Emission;
+        sampler2D _NormalMap;
+        sampler2D _MetallicSmoothness;
+        sampler2D _AmbientOcclusionMap;
+        sampler2D _EmissionMap;
 
         // Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
         // See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.
@@ -48,10 +54,13 @@ Shader "Custom/E1.7"
             // Albedo comes from a texture tinted by color
             fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
             o.Albedo = c.rgb;
+            o.Normal = UnpackScaleNormal (tex2D (_NormalMap, IN.uv_MainTex), _NormalIntensity);
             // Metallic and smoothness come from slider variables
-            o.Metallic = _Metallic;
-            o.Smoothness = _Glossiness;
-            o.
+            fixed4 ms = tex2D (_MetallicSmoothness, IN.uv_MainTex);
+            o.Metallic = ms.r * _Metallic;
+            o.Smoothness = ms.a *_Smoothness;
+            o.Occlusion = tex2D (_AmbientOcclusionMap, IN.uv_MainTex);
+            o.Emission = tex2D (_EmissionMap, IN.uv_MainTex) * _Emission;
             o.Alpha = c.a;
         }
         ENDCG
