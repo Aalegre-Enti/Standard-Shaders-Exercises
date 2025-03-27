@@ -8,11 +8,11 @@ Shader "Unlit/E1.2"
     SubShader
     {
         Tags { "RenderQueue"="Transparent" "RenderType"="Transparent" }
+        Blend SrcAlpha OneMinusSrcAlpha
         LOD 100
 
         Pass
         {
-            Blend SrcAlpha OneMinusSrcAlpha
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
